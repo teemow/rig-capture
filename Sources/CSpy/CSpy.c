@@ -9,10 +9,10 @@
  * passively, without reconfiguring the (closed) vendor editor apps.
  *
  * The MIDISpy client sources are vendored on demand (see `make vendor-midispy`,
- * which copies `MIDISpyClient.{h,m}` + helpers into this target). When the
- * header is present we compile the real client; otherwise this builds as a
- * clean stub that reports the driver as missing, so `swift build` is green in
- * CI without the vendored (BSD-licensed) sources.
+ * which copies `MIDISpyClient.c` + `MIDISpyClient.h` + `MIDISpyShared.h` into
+ * this target). When the header is present we compile the real client;
+ * otherwise this builds as a clean stub that reports the driver as missing, so
+ * `swift build` is green in CI without the vendored (BSD-licensed) sources.
  */
 
 #if defined(__APPLE__)
@@ -33,11 +33,10 @@ static void *g_context = 0;
 static MIDISpyClientRef g_client = NULL;
 static MIDISpyPortRef g_port = NULL;
 
-/* CoreMIDI read proc: MIDISpy delivers tapped packets here. The connection
- * refCon carries the destination endpoint ref we passed at connect time. */
-static void RigSpyReadProc(const MIDIPacketList *pktlist, void *readProcRefCon,
-                           void *srcConnRefCon) {
-    (void)readProcRefCon;
+/* MIDISpy delivers tapped packets to a MIDIReadBlock; this helper fans each
+ * packet out to the C callback. The connection refCon carries the destination
+ * endpoint ref we passed at connect time. */
+static void RigSpyHandlePackets(const MIDIPacketList *pktlist, void *srcConnRefCon) {
     if (!g_callback || !pktlist) {
         return;
     }
@@ -52,8 +51,14 @@ static void RigSpyReadProc(const MIDIPacketList *pktlist, void *readProcRefCon,
 }
 
 int RigSpyDriverInstalled(void) {
-    /* Installs the bundled driver if absent; returns noErr when present. */
-    return MIDISpyInstallDriverIfNecessary() == noErr;
+    /* The driver is installed out-of-band (see `make install-driver`); probe it
+     * by trying to create a client and immediately disposing it. */
+    MIDISpyClientRef client = NULL;
+    OSStatus err = MIDISpyClientCreate(&client);
+    if (client != NULL) {
+        MIDISpyClientDispose(client);
+    }
+    return err == noErr;
 }
 
 int RigSpyStart(RigSpyPacketCallback callback, void *context) {
@@ -61,14 +66,19 @@ int RigSpyStart(RigSpyPacketCallback callback, void *context) {
     g_context = context;
 
     OSStatus err = MIDISpyClientCreate(&g_client);
-    if (err == kMIDISpyDriverMissing) {
+    if (err == kMIDISpyDriverMissing || err == kMIDISpyDriverCouldNotCommunicate) {
         return RIG_SPY_ERR_DRIVER_MISSING;
     }
     if (err != noErr || g_client == NULL) {
         return RIG_SPY_ERR_INTERNAL;
     }
 
-    err = MIDISpyPortCreate(g_client, RigSpyReadProc, NULL, &g_port);
+    /* MIDISpyPortCreate takes a MIDIReadBlock. The block captures only
+     * file-scope state, so it is a global block and needs no copy management. */
+    MIDIReadBlock readBlock = ^(const MIDIPacketList *pktlist, void *srcConnRefCon) {
+        RigSpyHandlePackets(pktlist, srcConnRefCon);
+    };
+    err = MIDISpyPortCreate(g_client, readBlock, &g_port);
     if (err != noErr || g_port == NULL) {
         MIDISpyClientDispose(g_client);
         g_client = NULL;

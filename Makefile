@@ -40,14 +40,19 @@ vendor-midispy:
 		echo "MIDISpy sources already cloned in third_party/MIDISpy/_src"; \
 	fi
 	@echo "Copying MIDISpy client sources into Sources/CSpy ..."
-	@find third_party/MIDISpy/_src -name 'MIDISpyClient.h' -o -name 'MessagePortBroadcaster.h' \
-		-o -name 'MessageQueue.h' | while read -r f; do cp "$$f" Sources/CSpy/include/; done
-	@find third_party/MIDISpy/_src -name 'MIDISpyClient.m' -o -name 'MessagePortBroadcaster.m' \
-		-o -name 'MessageQueue.m' | while read -r f; do cp "$$f" Sources/CSpy/; done
-	@if [ -f Sources/CSpy/include/MIDISpyClient.h ]; then \
-		echo "OK: MIDISpyClient.h in place; CSpy will compile the real tap."; \
+	@# The client is a pure-C CFMessagePort implementation: MIDISpyClient.c plus
+	@# its two headers. They are kept private (next to CSpy.c, not in include/) so
+	@# they stay out of the public CSpy module. CSpy.c #include-guards on them, so
+	@# without these files it builds as a clean stub (green CI without the
+	@# BSD-licensed sources).
+	@for n in MIDISpyClient.c MIDISpyClient.h MIDISpyShared.h; do \
+		f=$$(find third_party/MIDISpy/_src -name "$$n" | head -1); \
+		if [ -n "$$f" ]; then cp "$$f" Sources/CSpy/; else echo "WARN: $$n not found in clone"; fi; \
+	done
+	@if [ -f Sources/CSpy/MIDISpyClient.c ] && [ -f Sources/CSpy/MIDISpyClient.h ] && [ -f Sources/CSpy/MIDISpyShared.h ]; then \
+		echo "OK: MIDISpy client sources in place; CSpy will compile the real tap."; \
 	else \
-		echo "WARN: MIDISpyClient.h not found in the clone; verify the repo layout."; \
+		echo "WARN: MIDISpy sources incomplete; CSpy will build as the stub."; \
 	fi
 
 ## Install the MIDISpy CoreMIDI driver into the user MIDI Drivers directory.
