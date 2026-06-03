@@ -87,6 +87,41 @@ Each session writes two artifacts to `captures/` (gitignored):
 - `*.jsonl` -- machine-readable: `{ts, direction, endpoint, hex, decoded}` per line.
 - `*.log` -- human-readable hexdump with reassembled SysEx.
 
+## Per-device capture recipes
+
+Each undecoded protocol is reached through its own vendor editor. Run the
+matching recipe, drive the editor through the interaction you want to decode
+(load a preset, tweak a parameter, read back device state), then stop the
+capture with Ctrl-C and run `decode --file` on the resulting `.jsonl`.
+
+| Device | Editor app | Transport | Decoder | What to drive in the app |
+|--------|-----------|-----------|---------|--------------------------|
+| **Eventide H90** | H90 Control | CoreMIDI (USB or BLE) | `H90 / TRPC` | Recall presets/programs and edit algorithm params to surface the `Dot9MessageType` opcodes. |
+| **Morningstar ML10X** | Morningstar editor in Chrome (Web MIDI) | CoreMIDI | `ML10X` | Read the device into the editor, then write a preset back, to separate editor *read* opcodes from controller *write* ("Message Type") opcodes. |
+| **Boss SL-2** | BOSS Tone Studio | CoreMIDI (USB) | `Roland/Boss` | Read/write patterns; used for RQ1/DT1 + checksum confirmation captures. |
+| **Two Notes Opus** | Torpedo Remote | USB-HID | `Opus HID` (raw) | Load presets / edit the signal chain; HID reports are dumped raw (no known framing yet). |
+
+```sh
+# H90: H90 Control speaks CoreMIDI over USB or BLE. Start the capture first,
+# then open H90 Control and load/edit a preset.
+swift run rig-capture capture midi --name h90-preset-load
+# ...drive H90 Control, then Ctrl-C...
+swift run rig-capture decode --file captures/h90-preset-load.jsonl
+
+# ML10X: the Morningstar editor runs in Chrome via Web MIDI (CoreMIDI under it).
+swift run rig-capture capture midi --name ml10x-read-then-write
+
+# Boss SL-2: BOSS Tone Studio over USB-MIDI.
+swift run rig-capture capture midi --name sl2-pattern-rw
+
+# Opus: HID interposition into Torpedo Remote (needs Frida + SIP relaxed once).
+swift run rig-capture capture hid --app "/Applications/Torpedo Remote.app" --name opus-dump
+swift run rig-capture decode --file captures/opus-dump.jsonl
+```
+
+> X32 is **out of scope** here -- it speaks OSC over the network, so capture it
+> with Wireshark, not rig-capture.
+
 ## Decoders
 
 The `decode` subcommand recognizes the framing of devices that are not yet
@@ -107,6 +142,24 @@ gitignored). Only **generic protocol findings** -- opcode meanings, framing,
 bitmask layout -- get hand-copied into the main project's
 `docs/research/<device>.md`. This mirrors the public/private rule of
 `mcp-midi-controller`.
+
+### Flow back to mcp-midi-controller
+
+The point of a capture is to learn something generic and write it down in the
+main project. The loop is:
+
+1. Capture a session here (`capture midi` / `capture hid`) and inspect it with
+   `decode`.
+2. Distil the **device-agnostic protocol fact** -- the opcode, framing, value
+   encoding, bitmask -- from the raw bytes.
+3. Hand-copy *only that generic finding* into the matching research doc in
+   `mcp-midi-controller/docs/research/`:
+   [`h90.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/h90.md),
+   [`ml10x.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/ml10x.md),
+   [`opus.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/opus.md),
+   [`sl-2.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/sl-2.md).
+4. The raw capture and any rig-specific snapshot stay out of git -- in
+   `captures/` here, or in `mcp-midi-controller/docs/private/` over there.
 
 ## License
 
