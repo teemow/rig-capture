@@ -21,12 +21,20 @@ let package = Package(
         // third_party/MIDISpy). Lets the daemon receive a copy of everything
         // an app sends to a CoreMIDI destination.
         .target(
-            name: "CSpy"
+            name: "CSpy",
+            linkerSettings: [
+                .linkedFramework("CoreMIDI", .when(platforms: [.macOS])),
+                .linkedFramework("CoreFoundation", .when(platforms: [.macOS])),
+            ]
         ),
         // Injectable dylib that interposes IOHIDDevice report calls so we can
         // log raw USB-HID report buffers from a vendor app.
         .target(
-            name: "CHidHook"
+            name: "CHidHook",
+            linkerSettings: [
+                .linkedFramework("IOKit", .when(platforms: [.macOS])),
+                .linkedFramework("CoreFoundation", .when(platforms: [.macOS])),
+            ]
         ),
         // Known-framing decoders (H90/TRPC, ML10X, Roland/Boss, Opus HID).
         // Kept as a top-level directory per the design.
@@ -40,6 +48,9 @@ let package = Package(
                 "CSpy",
                 "RigDecoders",
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ],
+            linkerSettings: [
+                .linkedFramework("CoreMIDI", .when(platforms: [.macOS])),
             ]
         ),
         .testTarget(

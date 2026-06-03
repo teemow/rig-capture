@@ -15,13 +15,27 @@ struct Decode: ParsableCommand {
     @Flag(name: .long, help: "List the available decoders and exit.")
     var listDecoders: Bool = false
 
+    @Option(name: .long, help: "Decode every frame in a previously captured .jsonl file.")
+    var file: String?
+
     func run() throws {
         let registry = DecoderRegistry.default
         if listDecoders {
             for decoder in registry.decoders {
-                print("\(decoder.name)\t\(decoder.summary)")
+                let transports = decoder.transports.map { $0.rawValue }.sorted()
+                    .joined(separator: ",")
+                print("\(decoder.name)\t[\(transports)]\t\(decoder.summary)")
             }
             return
+        }
+
+        if let file {
+            try decodeFile(file, registry: registry)
+            return
+        }
+
+        guard !hex.isEmpty else {
+            throw ValidationError("provide hex bytes, --file <capture.jsonl>, or --list-decoders")
         }
         let bytes = try Self.parseHex(hex.joined())
         let matches = registry.decode(bytes)
@@ -29,10 +43,35 @@ struct Decode: ParsableCommand {
             print("no decoder matched \(bytes.count) bytes")
             return
         }
+        printMatches(matches)
+    }
+
+    private func decodeFile(_ path: String, registry: DecoderRegistry) throws {
+        let contents = try String(contentsOfFile: path, encoding: .utf8)
+        let decoder = JSONDecoder()
+        var line = 0
+        for raw in contents.split(separator: "\n") {
+            line += 1
+            guard let data = String(raw).data(using: .utf8),
+                let record = try? decoder.decode(CaptureRecord.self, from: data)
+            else {
+                continue
+            }
+            let bytes = (try? Self.parseHex(record.hex)) ?? []
+            let transport: DecoderTransport = bytes.first == 0xF0 ? .midi : .hid
+            let matches = registry.decode(bytes, transport: transport)
+            guard !matches.isEmpty else { continue }
+            let arrow = record.direction == .toDevice ? "->" : "<-"
+            print("line \(line): \(arrow) \(record.endpoint)")
+            printMatches(matches, indent: "  ")
+        }
+    }
+
+    private func printMatches(_ matches: [DecodeMatch], indent: String = "") {
         for match in matches {
-            print("[\(match.decoder)]")
+            print("\(indent)[\(match.decoder)]")
             for (key, value) in match.fields.sorted(by: { $0.key < $1.key }) {
-                print("  \(key) = \(value)")
+                print("\(indent)  \(key) = \(value)")
             }
         }
     }

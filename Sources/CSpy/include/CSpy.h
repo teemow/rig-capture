@@ -31,20 +31,21 @@ typedef void (*RigSpyPacketCallback)(uint32_t endpointRef,
                                       size_t len,
                                       void *context);
 
-/* Return codes. */
-typedef enum {
+/* Return codes (functions return these as plain int to stay unambiguous when
+ * imported into Swift). */
+enum {
     RIG_SPY_OK = 0,
     RIG_SPY_ERR_DRIVER_MISSING = 1, /* MIDISpy driver not installed */
     RIG_SPY_ERR_CONNECT = 2,        /* could not connect spy client */
     RIG_SPY_ERR_INTERNAL = 3,
-} RigSpyStatus;
+};
 
 /* Is the MIDISpy driver installed in ~/Library/Audio/MIDI Drivers/ ? */
 int RigSpyDriverInstalled(void);
 
 /* Connect a spy client and begin delivering packets to the callback.
- * Returns RIG_SPY_OK on success. */
-RigSpyStatus RigSpyStart(RigSpyPacketCallback callback, void *context);
+ * Returns RIG_SPY_OK (0) on success, or one of the RIG_SPY_ERR_* codes. */
+int RigSpyStart(RigSpyPacketCallback callback, void *context);
 
 /* Tear down the spy client. */
 void RigSpyStop(void);

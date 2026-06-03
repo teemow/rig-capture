@@ -16,6 +16,16 @@
 /private/
 *.local.*
 
+# Vendored MIDISpy client sources (fetched/copied by `make vendor-midispy`).
+# BSD-licensed third-party code; not committed here.
+/third_party/MIDISpy/_src/
+/Sources/CSpy/MIDISpyClient.m
+/Sources/CSpy/MessagePortBroadcaster.m
+/Sources/CSpy/MessageQueue.m
+/Sources/CSpy/include/MIDISpyClient.h
+/Sources/CSpy/include/MessagePortBroadcaster.h
+/Sources/CSpy/include/MessageQueue.h
+
 # Editor / OS
 .DS_Store
 *.swp

@@ -9,6 +9,7 @@ public struct OpusDecoder: RigDecoder {
 
     public let name = "opus"
     public let summary = "Eventide Opus HID (no known framing): raw passthrough"
+    public let transports: Set<DecoderTransport> = [.hid]
 
     public func matches(_ bytes: [UInt8]) -> Bool {
         // HID reports are not SysEx-framed; treat any non-SysEx buffer as a

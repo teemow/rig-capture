@@ -64,17 +64,21 @@ make hidhook             # build just libCHidHook.dylib
 ## Usage
 
 ```sh
-# Enumerate CoreMIDI endpoints to pick a target.
+# Enumerate CoreMIDI endpoints (add --devices for devices + entities).
 swift run rig-capture list
 
 # Passively tap CoreMIDI (app<->device) into captures/<name>.{jsonl,log}.
+# Ctrl-C stops the session cleanly. --no-spy captures device->app only.
 swift run rig-capture capture midi --name h90-preset-load
 
-# Capture USB-HID reports by injecting CHidHook into a vendor app.
-swift run rig-capture capture hid "/Applications/Torpedo Remote.app"
+# Capture USB-HID reports by injecting CHidHook into a vendor app (Frida).
+swift run rig-capture capture hid --app "/Applications/Torpedo Remote.app" --name opus-dump
+# Unsigned/dev builds can use the DYLD fallback instead of Frida:
+swift run rig-capture capture hid --app ./MyTool --dyld
 
-# Decode hex bytes with the known-framing decoders.
+# Decode hex bytes, a whole capture file, or list the decoders.
 swift run rig-capture decode "F0 1C 77 00 01 02 03 04 0A F7"
+swift run rig-capture decode --file captures/h90-preset-load.jsonl
 swift run rig-capture decode --list-decoders
 ```
 

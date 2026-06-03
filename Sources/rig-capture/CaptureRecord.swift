@@ -31,6 +31,20 @@ struct CaptureRecord: Codable {
         self.hex = bytes.map { String(format: "%02x", $0) }.joined()
         self.decoded = decoded
     }
+
+    /// Human-readable one-line rendering, shared by the `.log` artifact and the
+    /// live console echo.
+    var humanLine: String {
+        let arrow = direction == .toDevice ? "->" : "<-"
+        var line = String(format: "%.6f %@ %@ %@", ts, arrow, endpoint, hex)
+        if let decoded, !decoded.isEmpty {
+            let fields = decoded.sorted { $0.key < $1.key }
+                .map { "\($0.key)=\($0.value)" }
+                .joined(separator: " ")
+            line += "  [\(fields)]"
+        }
+        return line
+    }
 }
 
 /// Writes capture sessions to a gitignored `captures/` directory as a pair of
@@ -57,17 +71,7 @@ final class CaptureWriter {
             jsonl.write(data)
             jsonl.write(Data("\n".utf8))
         }
-        let arrow = record.direction == .toDevice ? "->" : "<-"
-        var line = String(format: "%.6f %@ %@ %@",
-                          record.ts, arrow, record.endpoint, record.hex)
-        if let decoded = record.decoded, !decoded.isEmpty {
-            let fields = decoded.sorted { $0.key < $1.key }
-                .map { "\($0.key)=\($0.value)" }
-                .joined(separator: " ")
-            line += "  [\(fields)]"
-        }
-        line += "\n"
-        log.write(Data(line.utf8))
+        log.write(Data((record.humanLine + "\n").utf8))
     }
 
     func close() {

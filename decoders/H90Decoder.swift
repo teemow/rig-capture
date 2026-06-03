@@ -10,6 +10,7 @@ public struct H90Decoder: RigDecoder {
 
     public let name = "h90"
     public let summary = "Eventide H90 TRPC: F0 1C 77 00 <hdr4> <flatbuffers> F7"
+    public let transports: Set<DecoderTransport> = [.midi]
 
     private static let prefix: [UInt8] = [0xF0, 0x1C, 0x77, 0x00]
 
@@ -23,11 +24,18 @@ public struct H90Decoder: RigDecoder {
         let messageId = (UInt16(header[header.startIndex] & 0x7F) << 7)
             | UInt16(header[header.startIndex + 1] & 0x7F)
         let payload = bytes[8..<(bytes.count - 1)]
+        // The last header byte is the status byte; 0x02 is the device error
+        // response (see docs/research/h90.md).
+        let status = header[header.startIndex + 3]
         var fields: [String: String] = [
             "header": SysEx.hex(header),
             "message_id_14bit": String(messageId),
+            "status": String(format: "%02X", status),
             "payload_len": String(payload.count),
         ]
+        if status == 0x02 {
+            fields["status_note"] = "device_error"
+        }
         if payload.count >= 4 {
             fields["flatbuffers_root_offset"] = SysEx.hex(payload.prefix(4))
         }

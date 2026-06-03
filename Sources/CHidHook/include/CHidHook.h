@@ -17,8 +17,16 @@
  * __DATA,__interpose section; there is no public API to call -- loading the
  * dylib is enough. This header only documents the contract.
  *
+ * Hooked IOHIDDevice entry points:
+ *   - IOHIDDeviceSetReport / IOHIDDeviceSetReportWithCallback   (host -> device)
+ *   - IOHIDDeviceGetReport / IOHIDDeviceGetReportWithCallback   (device -> host)
+ *   - IOHIDDeviceRegisterInputReportCallback                    (device -> host,
+ *                                                                async stream)
+ *
  * Output: each report is written as a line to the file named by the
- * RIG_HIDHOOK_LOG environment variable (default: stderr).
+ * RIG_HIDHOOK_LOG environment variable (default: stderr). Line format:
+ *   <unix_ts> <OUT|IN> type=<n> id=<n> len=<n>: <hh hh ...>
+ * which `rig-capture capture hid` tails and folds into the capture session.
  */
 
 #endif /* CHIDHOOK_H */

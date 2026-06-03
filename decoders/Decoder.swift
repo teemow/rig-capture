@@ -1,5 +1,13 @@
 import Foundation
 
+/// Which capture transport a decoder applies to. SysEx decoders only make
+/// sense on MIDI frames; the raw HID passthrough only on HID reports. This
+/// keeps a plain CC/Note MIDI message from being tagged by the HID decoder.
+public enum DecoderTransport: String, Sendable {
+    case midi
+    case hid
+}
+
 /// A known-framing decoder for one device family. Decoders are read-only: they
 /// recognize a byte stream and surface envelope/header fields to help pin down
 /// undecoded opcodes. They do not attempt to fully parse payloads.
@@ -8,10 +16,16 @@ public protocol RigDecoder {
     var name: String { get }
     /// One-line description of what this decoder recognizes.
     var summary: String { get }
+    /// Transports this decoder applies to. Defaults to both.
+    var transports: Set<DecoderTransport> { get }
     /// Does this byte stream look like this decoder's framing?
     func matches(_ bytes: [UInt8]) -> Bool
     /// Extract envelope/header fields. Only called when `matches` is true.
     func decode(_ bytes: [UInt8]) -> [String: String]
+}
+
+extension RigDecoder {
+    public var transports: Set<DecoderTransport> { [.midi, .hid] }
 }
 
 /// Result of a successful decode.

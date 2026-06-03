@@ -16,9 +16,11 @@ public struct DecoderRegistry {
         OpusDecoder(),
     ])
 
-    /// Run every matching decoder and return their fields.
-    public func decode(_ bytes: [UInt8]) -> [DecodeMatch] {
+    /// Run every matching decoder and return their fields. When `transport` is
+    /// given, only decoders that apply to that transport are considered.
+    public func decode(_ bytes: [UInt8], transport: DecoderTransport? = nil) -> [DecodeMatch] {
         decoders.compactMap { decoder in
+            if let transport, !decoder.transports.contains(transport) { return nil }
             guard decoder.matches(bytes) else { return nil }
             return DecodeMatch(decoder: decoder.name, fields: decoder.decode(bytes))
         }

@@ -9,6 +9,7 @@ public struct RolandDecoder: RigDecoder {
 
     public let name = "roland"
     public let summary = "Roland/Boss SL-2: F0 41 <dev> 00 00 00 00 1D <RQ1|DT1> ... F7"
+    public let transports: Set<DecoderTransport> = [.midi]
 
     private static let manufacturer: UInt8 = 0x41
     private static let modelId: [UInt8] = [0x00, 0x00, 0x00, 0x00, 0x1D]
