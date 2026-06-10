@@ -21,7 +21,8 @@ public struct H90Decoder: RigDecoder {
     public func decode(_ bytes: [UInt8]) -> [String: String] {
         let header = bytes[4..<8]
         // Reconstruct a 14-bit id from the first two header bytes (7 bits each).
-        let messageId = (UInt16(header[header.startIndex] & 0x7F) << 7)
+        let messageId =
+            (UInt16(header[header.startIndex] & 0x7F) << 7)
             | UInt16(header[header.startIndex + 1] & 0x7F)
         let payload = bytes[8..<(bytes.count - 1)]
         // The last header byte is the status byte; 0x02 is the device error

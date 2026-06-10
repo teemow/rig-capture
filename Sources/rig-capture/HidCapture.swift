@@ -130,14 +130,14 @@ final class HidCapture {
     /// target. Written to a temp file so we don't depend on the working dir.
     private func writeInjectScript() throws -> String {
         let js = """
-        const dylib = Process.env.RIG_HIDHOOK_DYLIB || \(jsString(dylibPath));
-        try {
-          Module.load(dylib);
-          console.log("[rig-capture] loaded HID hook: " + dylib);
-        } catch (e) {
-          console.error("[rig-capture] failed to load " + dylib + ": " + e.message);
-        }
-        """
+            const dylib = Process.env.RIG_HIDHOOK_DYLIB || \(jsString(dylibPath));
+            try {
+              Module.load(dylib);
+              console.log("[rig-capture] loaded HID hook: " + dylib);
+            } catch (e) {
+              console.error("[rig-capture] failed to load " + dylib + ": " + e.message);
+            }
+            """
         let pid = ProcessInfo.processInfo.processIdentifier
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("rig-capture-inject-\(pid).js")
@@ -189,7 +189,8 @@ final class HidCapture {
     /// Resolve the executable inside a `.app` bundle, or pass through a binary.
     static func resolveBinary(_ path: String) -> String {
         if path.hasSuffix(".app"), let bundle = Bundle(path: path),
-            let exe = bundle.executablePath {
+            let exe = bundle.executablePath
+        {
             return exe
         }
         return path
@@ -205,7 +206,8 @@ final class HidCapture {
 
     /// Default dylib path: sibling of the running rig-capture executable.
     static func defaultDylibPath() -> String {
-        let exe = Bundle.main.executableURL
+        let exe =
+            Bundle.main.executableURL
             ?? URL(fileURLWithPath: CommandLine.arguments.first ?? "rig-capture")
         let dir = exe.resolvingSymlinksInPath().deletingLastPathComponent()
         return dir.appendingPathComponent("libCHidHook.dylib").path

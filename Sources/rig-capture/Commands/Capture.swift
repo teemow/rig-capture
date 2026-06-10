@@ -50,29 +50,29 @@ struct Capture: ParsableCommand {
 
         func run() throws {
             #if canImport(CoreMIDI)
-            let session = try options.makeSession()
-            let capture = MidiCapture(session: session)
-            do {
-                try capture.start(enableSpy: !noSpy)
-            } catch {
+                let session = try options.makeSession()
+                let capture = MidiCapture(session: session)
+                do {
+                    try capture.start(enableSpy: !noSpy)
+                } catch {
+                    session.close()
+                    throw error
+                }
+
+                let spyState = capture.spyEnabled ? "on" : "off"
+                let base = options.directoryURL.appendingPathComponent(options.name).path
+                print("rig-capture: capturing -> \(base).{jsonl,log}")
+                print("  sources connected: \(capture.sourceCount), app->device tap: \(spyState)")
+                print("  Press Ctrl-C to stop.")
+
+                Signals.waitForInterrupt()
+
+                capture.stop()
                 session.close()
-                throw error
-            }
-
-            let spyState = capture.spyEnabled ? "on" : "off"
-            let base = options.directoryURL.appendingPathComponent(options.name).path
-            print("rig-capture: capturing -> \(base).{jsonl,log}")
-            print("  sources connected: \(capture.sourceCount), app->device tap: \(spyState)")
-            print("  Press Ctrl-C to stop.")
-
-            Signals.waitForInterrupt()
-
-            capture.stop()
-            session.close()
-            print("\nrig-capture: stopped. \(session.frameCount) frame(s) written.")
+                print("\nrig-capture: stopped. \(session.frameCount) frame(s) written.")
             #else
-            throw CleanExit.message(
-                "CoreMIDI is only available on macOS; rig-capture is a macOS tool.")
+                throw CleanExit.message(
+                    "CoreMIDI is only available on macOS; rig-capture is a macOS tool.")
             #endif
         }
     }

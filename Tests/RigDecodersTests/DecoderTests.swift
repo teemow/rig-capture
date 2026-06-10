@@ -4,8 +4,10 @@ import XCTest
 final class DecoderTests: XCTestCase {
     func testH90Envelope() {
         // F0 1C 77 00 | 01 02 03 04 | 0A 0B 0C 0D | F7
-        let bytes: [UInt8] = [0xF0, 0x1C, 0x77, 0x00, 0x01, 0x02, 0x03, 0x04,
-                              0x0A, 0x0B, 0x0C, 0x0D, 0xF7]
+        let bytes: [UInt8] = [
+            0xF0, 0x1C, 0x77, 0x00, 0x01, 0x02, 0x03, 0x04,
+            0x0A, 0x0B, 0x0C, 0x0D, 0xF7,
+        ]
         let decoder = H90Decoder()
         XCTAssertTrue(decoder.matches(bytes))
         let fields = decoder.decode(bytes)

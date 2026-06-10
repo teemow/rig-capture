@@ -20,11 +20,13 @@ struct CaptureRecord: Codable {
     /// Optional decoded fields produced by a known-framing decoder.
     let decoded: [String: String]?
 
-    init(ts: Double = Date().timeIntervalSince1970,
-         direction: Direction,
-         endpoint: String,
-         bytes: [UInt8],
-         decoded: [String: String]? = nil) {
+    init(
+        ts: Double = Date().timeIntervalSince1970,
+        direction: Direction,
+        endpoint: String,
+        bytes: [UInt8],
+        decoded: [String: String]? = nil
+    ) {
         self.ts = ts
         self.direction = direction
         self.endpoint = endpoint
