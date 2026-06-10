@@ -1,10 +1,8 @@
 {
   "version": 1,
-  "lineLength": 100,
-  "indentation": {
-    "spaces": 4
-  },
-  "maximumBlankLines": 1,
-  "respectsExistingLineBreaks": true,
-  "lineBreakBeforeEachArgument": true
+  "indentation": { "spaces": 2 },
+  "lineLength": 120,
+  "rules": {
+    "ReplaceForEachWithForLoop": false
+  }
 }
