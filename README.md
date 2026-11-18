@@ -3,7 +3,7 @@
 A standalone macOS tool that captures the traffic between vendor **editor apps**
 and rig **devices**, so undecoded protocols can be reverse-engineered. It is the
 Mac counterpart to the Linux probes (`cmd/usb-probe`, `cmd/widi-probe`) in
-[`mcp-midi-controller`](https://github.com/teemow/mcp-midi-controller).
+[`roadie`](https://github.com/teemow/roadie).
 
 It captures two transports:
 
@@ -141,9 +141,9 @@ state, so they **never** go in git (`captures/`, `private/`, `*.local.*` are all
 gitignored). Only **generic protocol findings** -- opcode meanings, framing,
 bitmask layout -- get hand-copied into the main project's
 `docs/research/<device>.md`. This mirrors the public/private rule of
-`mcp-midi-controller`.
+`roadie`.
 
-### Flow back to mcp-midi-controller
+### Flow back to roadie
 
 The point of a capture is to learn something generic and write it down in the
 main project. The loop is:
@@ -153,13 +153,13 @@ main project. The loop is:
 2. Distil the **device-agnostic protocol fact** -- the opcode, framing, value
    encoding, bitmask -- from the raw bytes.
 3. Hand-copy *only that generic finding* into the matching research doc in
-   `mcp-midi-controller/docs/research/`:
-   [`h90.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/h90.md),
-   [`ml10x.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/ml10x.md),
-   [`opus.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/opus.md),
-   [`sl-2.md`](https://github.com/teemow/mcp-midi-controller/blob/main/docs/research/sl-2.md).
+   `roadie/docs/research/`:
+   [`h90.md`](https://github.com/teemow/roadie/blob/main/docs/research/h90.md),
+   [`ml10x.md`](https://github.com/teemow/roadie/blob/main/docs/research/ml10x.md),
+   [`opus.md`](https://github.com/teemow/roadie/blob/main/docs/research/opus.md),
+   [`sl-2.md`](https://github.com/teemow/roadie/blob/main/docs/research/sl-2.md).
 4. The raw capture and any rig-specific snapshot stay out of git -- in
-   `captures/` here, or in `mcp-midi-controller/docs/private/` over there.
+   `captures/` here, or in `roadie/rig/` over there.
 
 ## License
 

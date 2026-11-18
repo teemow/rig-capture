@@ -5,7 +5,7 @@ import Foundation
 ///
 /// Flags whether the checksum verifies and surfaces the opcode bytes so the
 /// controller "Message Type" writes can be told apart from the editor's read
-/// opcodes. See mcp-midi-controller/docs/research/ml10x.md.
+/// opcodes. See roadie/docs/research/ml10x.md.
 public struct ML10XDecoder: RigDecoder {
     public init() {}
 

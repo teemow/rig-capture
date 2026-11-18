@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Surfaces the 4-byte header (which carries a 14-bit message id / status byte)
 /// and the start of the FlatBuffers payload, to help pin the still-undecoded
-/// `Dot9MessageType` opcodes. See mcp-midi-controller/docs/research/h90.md.
+/// `Dot9MessageType` opcodes. See roadie/docs/research/h90.md.
 public struct H90Decoder: RigDecoder {
     public init() {}
 

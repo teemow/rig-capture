@@ -9,7 +9,7 @@
 
 # Captured sessions contain rig-specific names/IDs and live state.
 # The repo is public; raw captures NEVER go in git. Only generic protocol
-# findings get hand-copied into mcp-midi-controller/docs/research/<device>.md.
+# findings get hand-copied into roadie/docs/research/<device>.md.
 /captures/
 
 # Private, installation-specific notes (real device/console names, IPs, MACs).
