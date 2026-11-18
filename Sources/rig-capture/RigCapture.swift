@@ -12,7 +12,7 @@ struct RigCapture: ParsableCommand {
 
             Raw captures contain rig-specific names/IDs and stay out of git \
             (see .gitignore). Only generic protocol findings should be \
-            hand-copied into mcp-midi-controller/docs/research/<device>.md.
+            hand-copied into roadie/docs/research/<device>.md.
             """,
         version: "0.1.0",
         subcommands: [List.self, Capture.self, Decode.self]

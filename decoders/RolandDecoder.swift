@@ -3,7 +3,7 @@ import Foundation
 /// Roland/Boss SysEx (e.g. SL-2): `F0 41 <dev> 00 00 00 00 1D <cmd> ...`,
 /// where cmd is RQ1 (0x11, read request) or DT1 (0x12, data set), followed by
 /// address + data + a Roland checksum. Used to confirm capture framing.
-/// See mcp-midi-controller/docs/research/sl-2.md.
+/// See roadie/docs/research/sl-2.md.
 public struct RolandDecoder: RigDecoder {
     public init() {}
 
